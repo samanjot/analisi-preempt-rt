@@ -1,44 +1,47 @@
-# Raccolta dati cyclictest (baseline vs stress)
+# Analisi cyclictest (Preempt-RT vs No Preempt-RT)
 
-In questa cartella trovi i log/JSON generati con due run di `cyclictest`:
-1) **Baseline**: sistema in idle.
-2) **Stress**: stesso `cyclictest` mentre un carico `stress-ng` satura CPU/timer.
+Questa cartella contiene i risultati di `cyclictest` in formato JSON per sei scenari:
 
-## Comandi usati
+- `cyclic_baseline_nopreempt_rt.json`
+- `cyclic_baseline_preempt_rt.json`
+- `cyclic_stress_100k_nopreempt_rt.json`
+- `cyclic_stress_100k_preempt_rt.json`
+- `cyclic_stress_1M_nopreempt_rt.json`
+- `cyclic_stress_1M_preempt_rt.json`
 
-### 1. Misura baseline (senza stress)
+Ogni file include l’istogramma delle latenze per thread; i nomi scenario vengono normalizzati nel notebook.
+
+## Notebook principale
+
+`analisys_def.ipynb` produce:
+- jitter massimo per scenario (bar plot con etichette),
+- boxplot latenze separati per No Preempt-RT e Preempt-RT,
+- distribuzioni delle latenze per scenario,
+- riepilogo (media, std, max, min) per scenario,
+- jitter per thread per ogni scenario (bar plot con etichette).
+
+### Come eseguire
+1. Installare le dipendenze (Python 3.10+):
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Avviare Jupyter:
+   ```bash
+   jupyter notebook analisys_def.ipynb
+   ```
+3. Eseguire tutte le celle: i file `cyclic_*.json` vengono individuati automaticamente.
+
+## Come sono stati raccolti i dati
+
+Run baseline (esempio):
 ```bash
-sudo cyclictest -S -p 99 -m -i 1000 -v -D30
+sudo cyclictest -S -p 99 -m -i 1000 -v -D30 --json=cyclic_baseline_nopreempt_rt.json
 ```
-- `-S`           : usa clock monotonic e mostra statistiche per thread.
-- `-p 99`        : priorità RT 99.
-- `-m`           : mlock, evita page fault.
-- `-i 1000`      : intervallo 1000 µs tra i timer.
-- `-v`           : output verboso (per thread).
-- `-D30`         : durata 30 s.
 
-Salva l’output in `cyclic_baseline.log` (o in JSON con `--json=ct_baseline.json` se preferisci il formato strutturato).
-
-### 2. Genera carico con stress-ng (per la prova “stress”)
-Lanciato in parallelo al secondo run di `cyclictest`:
+Run sotto carico (esempio 100k timer):
 ```bash
-sudo stress-ng \
-  --all 0 --maximize --aggressive \
-  --timer 0 --timer-freq 1000000 --timer-slack 0 \
-  --timeout 30 \
-  --metrics-brief --times
+sudo stress-ng --timer 0 --timer-freq 100000 --timer-slack 0 --timeout 30 --metrics-brief --times &
+sudo cyclictest -S -p 99 -m -i 1000 -v -D30 --json=cyclic_stress_100k_nopreempt_rt.json
 ```
-- `--all 0 --maximize --aggressive` : attiva tutti gli stressor disponibili, sfruttando al massimo le risorse.
-- `--timer 0`                       : stressor timer su tutti i core.
-- `--timer-freq 1000000`            : frequenza timer molto alta.
-- `--timer-slack 0`                 : nessun margine di slack.
-- `--timeout 30`                    : dura 30 s (allineato con cyclictest).
-- `--metrics-brief --times`         : stampa tempi e metriche di sintesi.
 
-Esegui `cyclictest` con gli stessi parametri del baseline durante l’esecuzione di `stress-ng` e salva l’output in `cyclic_stress.log` (o `ct_stress.json` con `--json`).
-
-## Output attesi
-- `cyclic_baseline.log` / `ct_baseline.json` : misura senza carico.
-- `cyclic_stress.log` / `ct_stress.json`    : misura con carico `stress-ng` attivo.
-
-Questi file sono poi analizzati dai notebook nella repo (es. `analysis_logs.ipynb`). 
+Sostituire i suffissi `_nopreempt_rt` / `_preempt_rt` e i carichi (`100k`, `1M`) in base allo scenario.
