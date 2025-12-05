@@ -3,3 +3,4 @@ pandas>=2.2
 matplotlib>=3.8
 notebook>=7.2
 ipykernel>=6.29
+ipympl>=0.9
