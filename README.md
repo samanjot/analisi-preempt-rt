@@ -1,47 +1,72 @@
-# Analisi cyclictest (Preempt-RT vs No Preempt-RT)
+## Cyclic Latency Test Tool
 
-Questa cartella contiene i risultati di `cyclictest` in formato JSON per sei scenari:
+Questo script (`run_cyclic_tests.sh`) automatizza l’esecuzione di **cyclictest** in tre scenari:
 
-- `cyclic_baseline_nopreempt_rt.json`
-- `cyclic_baseline_preempt_rt.json`
-- `cyclic_stress_100k_nopreempt_rt.json`
-- `cyclic_stress_100k_preempt_rt.json`
-- `cyclic_stress_1M_nopreempt_rt.json`
-- `cyclic_stress_1M_preempt_rt.json`
+1. **Baseline** (senza carico)
+2. **Con stress leggero** (`stress-ng` a frequenza `smin`)
+3. **Con stress pesante** (`stress-ng` a frequenza `smax`)
 
-Ogni file include l’istogramma delle latenze per thread; i nomi scenario vengono normalizzati nel notebook.
+Per ogni scenario vengono prodotti:
 
-## Notebook principale
+* un file **JSON** con i risultati completi di `cyclictest`
+* opzionalmente un file **HIST** con l’istogramma delle latenze (distribuzione statistica)
 
-`analisys_def.ipynb` produce:
-- jitter massimo per scenario (bar plot con etichette),
-- boxplot latenze separati per No Preempt-RT e Preempt-RT,
-- distribuzioni delle latenze per scenario,
-- riepilogo (media, std, max, min) per scenario,
-- jitter per thread per ogni scenario (bar plot con etichette).
+È pensato per confrontare il comportamento real-time del kernel (PREEMPT / PREEMPT_RT, tuning IRQ, governor CPU, isolcpus, ecc.).
 
-### Come eseguire
-1. Installare le dipendenze (Python 3.10+):
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. Avviare Jupyter:
-   ```bash
-   jupyter notebook analisys_def.ipynb
-   ```
-3. Eseguire tutte le celle: i file `cyclic_*.json` vengono individuati automaticamente.
+---
 
-## Come sono stati raccolti i dati
+### Requisiti
 
-Run baseline (esempio):
+* Esecuzione come **root**
+* Pacchetti installati:
+
+  * `cyclictest`
+  * `stress-ng`
+
+---
+
+### Uso base
+
 ```bash
-sudo cyclictest -S -p 99 -m -i 1000 -v -D30 --json=cyclic_baseline_nopreempt_rt.json
+sudo ./run_cyclic_tests.sh
 ```
 
-Run sotto carico (esempio 100k timer):
+Esegue:
+
+* baseline (30 s)
+* stress a 100 kHz
+* stress a 1 MHz
+
+---
+
+### Opzioni principali
+
+| Opzione               | Descrizione                             |                                     |
+| --------------------- | --------------------------------------- | ----------------------------------- |
+| `-b, --baseline true  | false`                                  | Abilita/disabilita il test baseline |
+| `-t, --timeout <sec>` | Durata di ogni run di cyclictest        |                                     |
+| `--smin <freq>`       | Frequenza timer stress “leggero”        |                                     |
+| `--smax <freq>`       | Frequenza timer stress “pesante”        |                                     |
+| `-n, --name <suffix>` | Suffisso scenario nei nomi file         |                                     |
+| `--outdir <dir>`      | Directory di output                     |                                     |
+| `--hist <max_us>`     | Abilita istogramma fino a `<max_us>` µs |                                     |
+| `--nohist`            | Disabilita generazione istogrammi       |                                     |
+
+---
+
+### Esempi
+
 ```bash
-sudo stress-ng --timer 0 --timer-freq 100000 --timer-slack 0 --timeout 30 --metrics-brief --times &
-sudo cyclictest -S -p 99 -m -i 1000 -v -D30 --json=cyclic_stress_100k_nopreempt_rt.json
+sudo ./run_cyclic_tests.sh -n kernelA --outdir results/kernelA
+sudo ./run_cyclic_tests.sh -n kernelB --outdir results/kernelB
 ```
 
-Sostituire i suffissi `_nopreempt_rt` / `_preempt_rt` e i carichi (`100k`, `1M`) in base allo scenario.
+```bash
+sudo ./run_cyclic_tests.sh --hist 20000
+```
+
+```bash
+sudo ./run_cyclic_tests.sh -b false --smin 1000000 --smax 5000000
+```
+
+---
