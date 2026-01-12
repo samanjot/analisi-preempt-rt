@@ -160,9 +160,9 @@ run_with_stress() {
 
   echo "→ stress-ng --timer-freq=$freq (timeout=$stress_timeout)"
   # Start stress-ng in a new process group (setsid) so cleanup can kill all its children.
-  setsid stress-ng --timer 0 --timer-freq "$freq" --timer-slack 0 \
-                   --timeout "$stress_timeout" --metrics-brief --times \
-                   >/dev/null 2>&1 &
+  setsid stress-ng --timer 0 --timer-freq "$freq" --timer-slack 1 \
+                   --timeout "$stress_timeout" \
+                   --metrics-brief --times >"$outdir/stress_timer_${freq}_${scenario_name}.log" 2>&1 &
   stress_pid=$!
 
   sleep 2
