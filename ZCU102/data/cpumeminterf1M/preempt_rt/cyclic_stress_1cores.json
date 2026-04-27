@@ -1,0 +1,59 @@
+{
+  "file_version": 1,
+  "cmdline:": "cyclictest -p 99 -m -i 1000 -D300 -q -a 0 --json=preempt-rt/cyclic_stress_mem_1M_1cores_preempt-rt.json --histogram=4000 --histfile=preempt-rt/cyclic_stress_mem_1M_1cores_preempt-rt.hist",
+  "rt_test_version:": "2.60",
+  "start_time": "Sun, 12 Apr 2026 10:26:40 +0000",
+  "end_time": "Sun, 12 Apr 2026 10:31:40 +0000",
+  "return_code": 0,
+  "sysinfo": {
+    "sysname": "Linux",
+    "nodename": "amd-edf",
+    "release": "6.12.40-xilinx-g31626ef92ff1",
+    "version": "#1 SMP PREEMPT_RT Fri Nov  7 15:28:23 UTC 2025",
+    "machine": "aarch64",
+    "realtime": 0
+  },
+  "num_threads": 1,
+  "resolution_in_ns": 0,
+  "thread": {
+    "0": {
+      "histogram": {
+        "8": 21,
+        "9": 3012,
+        "10": 31691,
+        "11": 73383,
+        "12": 65290,
+        "13": 48130,
+        "14": 29905,
+        "15": 14458,
+        "16": 5962,
+        "17": 3538,
+        "18": 2818,
+        "19": 3028,
+        "20": 3169,
+        "21": 2924,
+        "22": 2059,
+        "23": 1477,
+        "24": 1311,
+        "25": 1335,
+        "26": 1763,
+        "27": 2183,
+        "28": 1588,
+        "29": 706,
+        "30": 173,
+        "31": 48,
+        "32": 16,
+        "33": 2,
+        "34": 4,
+        "35": 4,
+        "37": 2
+      },
+      "cycles": 300000,
+      "min": 8,
+      "max": 37,
+      "avg": 13.02,
+      "cpu": 0,
+      "node": -1
+    }
+  }
+}
